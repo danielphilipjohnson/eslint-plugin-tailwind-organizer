@@ -1,7 +1,7 @@
 {
   "$schema": "https://unpkg.com/@changesets/config/schema.json",
   "changelog": [
-    "./changelog.js",
+    "./.changeset/changelog.js",
     {
       "repo": "danielphilipjohnson/eslint-plugin-tailwind-organizer"
     }
