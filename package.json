@@ -9,7 +9,7 @@
     "./rules/*": "./src/rules/*.js"
   },
   "bin": {
-    "fix-tailwind-classnames": "./bin/fix-classnames.js"
+    "fix-tailwind-classnames": "bin/fix-classnames.js"
   },
   "files": [
     "src",
@@ -30,7 +30,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/danielphilipjohnson/eslint-plugin-tailwind-organizer.git"
+    "url": "git+https://github.com/danielphilipjohnson/eslint-plugin-tailwind-organizer.git"
   },
   "peerDependencies": {
     "eslint": ">=8.0.0 <10.0.0"
