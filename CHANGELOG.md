@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.2
+
+### Patch Changes
+
+- 2ce9e4b: Remove dummy test
+
 ## 0.0.1
 
 ### Patch Changes
