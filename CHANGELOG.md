@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.4
+
+### Patch Changes
+
+- 829619f: Add create github release to keep them in sync with npm
+
 ## 0.0.3
 
 ### Patch Changes
