@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.9
+
+### Patch Changes
+
+- [`d868ebc`](https://github.com/danielphilipjohnson/eslint-plugin-tailwind-organizer/commit/d868ebc1dc00bd85393af430b413893c6f332e96) Thanks [@danielphilipjohnson](https://github.com/danielphilipjohnson)! - added changelog
+
 ## 0.0.8
 
 ### Patch Changes
