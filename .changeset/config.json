@@ -1,16 +1,14 @@
 {
-  "$schema": "https://unpkg.com/@changesets/config@2.3.0/schema.json",
+  "$schema": "https://unpkg.com/@changesets/config/schema.json",
   "changelog": [
-    "@changesets/changelog-github",
+    "./changelog.js",
     {
       "repo": "danielphilipjohnson/eslint-plugin-tailwind-organizer"
     }
   ],
   "commit": false,
-  "fixed": [],
   "linked": [],
   "access": "public",
   "baseBranch": "main",
-  "updateInternalDependencies": "patch",
   "ignore": []
 }
