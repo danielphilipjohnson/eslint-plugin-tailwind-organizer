@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.8
+
+### Patch Changes
+
+- Achieved 100% test coverage"
+
 ## 0.0.7
 
 ### Patch Changes
