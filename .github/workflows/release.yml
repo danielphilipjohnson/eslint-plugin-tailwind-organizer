@@ -7,7 +7,7 @@ on:
 
 permissions:
   contents: write
-  id-token: write        # ⭐ REQUIRED for OIDC / Trusted Publisher
+  id-token: write
   packages: write
   pull-requests: write
 
@@ -31,6 +31,7 @@ jobs:
         uses: changesets/action@v1
         with:
           publish: npx changeset publish
+          version: npx changeset version  # ⭐ This updates package.json versions
           createGitHubReleases: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
