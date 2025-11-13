@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.11
+
+### Patch Changes
+
+- try to link changeset
+
 ## 0.0.10
 
 ### Patch Changes
