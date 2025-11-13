@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-tailwind-organizer",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "ESLint plugin to organize Tailwind CSS class names using custom grouping",
   "main": "src/index.js",
   "exports": {
