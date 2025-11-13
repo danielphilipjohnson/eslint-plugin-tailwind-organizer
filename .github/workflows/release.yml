@@ -7,12 +7,14 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
+  id-token: write
   packages: write
+  pull-requests: write
 
 jobs:
   release:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -20,14 +22,9 @@ jobs:
         with:
           node-version: 20
           registry-url: 'https://registry.npmjs.org/'
-
-      - name: Setup npm auth
-        run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          always-auth: true
 
       - run: npm ci
-
       - run: npm run build --if-present
 
       - name: Create Release Pull Request or Publish
@@ -37,4 +34,3 @@ jobs:
           createGitHubReleases: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
