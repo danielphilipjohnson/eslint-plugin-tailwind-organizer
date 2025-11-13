@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.10
+
+### Patch Changes
+
+- Add changelog to changeset (f4432acc01e47d6eaf3926c369a201961ea660c2)
+
 ## 0.0.9
 
 ### Patch Changes
