@@ -39,6 +39,7 @@
     "@babel/core": "^7.23.0",
     "@babel/eslint-parser": "^7.23.0",
     "@babel/preset-react": "^7.23.0",
+    "@changesets/changelog-github": "^0.5.1",
     "@changesets/cli": "^2.29.7",
     "@vitest/coverage-v8": "^4.0.8",
     "eslint": "^8.57.1",
