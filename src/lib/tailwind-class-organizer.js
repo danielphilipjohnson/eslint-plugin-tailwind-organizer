@@ -227,12 +227,14 @@ function matchesPattern(className, patterns) {
   });
 }
 
-function organizeClasses(classString, options = {}) {
-  const {
-    format = "inline",
-  } = options;
+function organizeClasses(classString, options) {
+  const resolvedOptions = options || {};
+  const format = resolvedOptions.format || "inline";
 
-  const classes = classString.trim().split(/\s+/).filter(Boolean);
+  const classes = (classString || "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
 
   const organized = {};
   const ungrouped = [];
@@ -355,10 +357,14 @@ function organizeClasses(classString, options = {}) {
 }
 
 // Generate JSX/TSX formatted className with comments
-function generateJSXClassName(classString, options = {}) {
-  const { componentName = "select" } = options;
+function generateJSXClassName(classString, options) {
+  const resolvedOptions = options || {};
+  const componentName = resolvedOptions.componentName || "select";
 
-  const classes = classString.trim().split(/\s+/).filter(Boolean);
+  const classes = (classString || "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
   const organized = {};
   const ungrouped = [];
 
@@ -441,5 +447,8 @@ function generateJSXClassName(classString, options = {}) {
 module.exports = {
   organizeClasses,
   generateJSXClassName,
+  // Expose helpers for testing and advanced usage
+  _internals: {
+    matchesPattern,
+  },
 };
-

@@ -35,6 +35,9 @@ jobs:
           version: npx changeset version
           publish: npx changeset publish
           createGitHubReleases: true
+          title: "chore: version packages"
+          commit: "chore: version packages"
+          
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

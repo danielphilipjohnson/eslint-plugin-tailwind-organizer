@@ -1,8 +1,10 @@
 import { describe, it, expect } from "vitest";
-const {
-  organizeClasses,
-  generateJSXClassName,
-} = require("../../src/lib/tailwind-class-organizer");
+import { createRequire } from "node:module";
+
+const tailwindOrganizer = require("../../src/lib/tailwind-class-organizer.js");
+
+const { organizeClasses, generateJSXClassName, _internals } = tailwindOrganizer;
+const { matchesPattern } = _internals;
 
 // We need to test matchesPattern indirectly through organizeClasses
 // since it's not exported
@@ -131,6 +133,32 @@ describe("organizeClasses", () => {
       expect(result).toContain("unknown-class");
       expect(result).toContain("flex");
     });
+
+    it("should include pseudo, responsive, dark mode, and Other sections", () => {
+      const result = organizeClasses(
+        "mystery before:custom sm:custom dark:custom hover:custom flex",
+        { format: "multiline" }
+      );
+
+      const layoutIdx = result.indexOf("// Layout");
+      const hoverIdx = result.indexOf("// Hover");
+      const pseudoElementIdx = result.indexOf("// Before/After");
+      const responsiveIdx = result.indexOf("// Responsive");
+      const darkIdx = result.indexOf("// Dark Mode");
+      const otherIdx = result.indexOf("// Other");
+
+      expect(layoutIdx).toBeGreaterThan(-1);
+      expect(hoverIdx).toBeGreaterThan(layoutIdx);
+      expect(pseudoElementIdx).toBeGreaterThan(hoverIdx);
+      expect(responsiveIdx).toBeGreaterThan(pseudoElementIdx);
+      expect(darkIdx).toBeGreaterThan(responsiveIdx);
+      expect(otherIdx).toBeGreaterThan(darkIdx);
+      expect(result).toContain("mystery");
+      expect(result).toContain("before:custom");
+      expect(result).toContain("sm:custom");
+      expect(result).toContain("dark:custom");
+      expect(result).toContain("hover:custom");
+    });
   });
 
   describe("edge cases", () => {
@@ -157,6 +185,37 @@ describe("organizeClasses", () => {
       expect(result).toContain("flex");
       // Note: Current implementation doesn't deduplicate, but classes are organized
       expect(result).toBe("flex flex");
+    });
+
+    it("should append to existing pseudo, responsive, and dark mode groups", () => {
+      const result = organizeClasses(
+        "hover:alpha hover:beta before:alpha before:beta sm:alpha sm:beta dark:alpha dark:beta"
+      );
+
+      expect(result).toContain("hover:alpha hover:beta");
+      expect(result).toContain("before:alpha before:beta");
+      expect(result).toContain("sm:alpha sm:beta");
+      expect(result).toContain("dark:alpha dark:beta");
+    });
+  });
+
+  describe("matchesPattern", () => {
+    it("matches literal patterns", () => {
+      expect(matchesPattern("flex", "flex")).toBe(true);
+      expect(matchesPattern("flex", "grid")).toBe(false);
+    });
+
+    it("matches classes that include prefix tokens", () => {
+      expect(matchesPattern("hover:custom", "hover:")).toBe(true);
+      expect(matchesPattern("md:flex", "md:")).toBe(true);
+    });
+
+    it("matches arrays of patterns", () => {
+      expect(matchesPattern("before:custom", ["hover:", "before:"])).toBe(true);
+    });
+
+    it("matches suffix after pseudo separators", () => {
+      expect(matchesPattern("hover:flex", "flex")).toBe(true);
     });
   });
 });
@@ -207,6 +266,11 @@ describe("generateJSXClassName", () => {
     expect(result).toContain("flex");
   });
 
+  it("should append multiple layout utilities into the same block", () => {
+    const result = generateJSXClassName("flex block inline-flex");
+    expect(result).toContain('"flex block inline-flex"');
+  });
+
   it("should format with proper indentation", () => {
     const result = generateJSXClassName("flex mt-4");
     const lines = result.split("\n");
@@ -215,5 +279,41 @@ describe("generateJSXClassName", () => {
     // Check that comments have proper indentation
     const commentLine = lines.find((l) => l.includes("// Layout"));
     expect(commentLine).toContain("    //");
+  });
+
+  it("should include pseudo, responsive, dark mode, and Other groups", () => {
+    const result = generateJSXClassName(
+      "mystery before:custom sm:custom dark:custom hover:custom flex"
+    );
+
+    const layoutIdx = result.indexOf("// Layout");
+    const hoverIdx = result.indexOf("// Hover");
+    const pseudoElementIdx = result.indexOf("// Before/After");
+    const responsiveIdx = result.indexOf("// Responsive");
+    const darkIdx = result.indexOf("// Dark Mode");
+    const otherIdx = result.indexOf("// Other");
+
+    expect(layoutIdx).toBeGreaterThan(-1);
+    expect(hoverIdx).toBeGreaterThan(layoutIdx);
+    expect(pseudoElementIdx).toBeGreaterThan(hoverIdx);
+    expect(responsiveIdx).toBeGreaterThan(pseudoElementIdx);
+    expect(darkIdx).toBeGreaterThan(responsiveIdx);
+    expect(otherIdx).toBeGreaterThan(darkIdx);
+    expect(result).toContain('"mystery"');
+    expect(result).toContain('"before:custom"');
+    expect(result).toContain('"sm:custom"');
+    expect(result).toContain('"dark:custom"');
+    expect(result).toContain('"hover:custom"');
+  });
+
+  it("should append to existing pseudo/responsive/dark sections", () => {
+    const result = generateJSXClassName(
+      "before:alpha before:beta hover:alpha hover:beta sm:alpha sm:beta dark:alpha dark:beta flex"
+    );
+
+    expect(result).toContain('"hover:alpha hover:beta"');
+    expect(result).toContain('"before:alpha before:beta"');
+    expect(result).toContain('"sm:alpha sm:beta"');
+    expect(result).toContain('"dark:alpha dark:beta"');
   });
 });
