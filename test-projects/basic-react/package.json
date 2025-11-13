@@ -1,0 +1,14 @@
+{
+  "name": "test-basic-react",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "lint": "eslint . --ext .js,.jsx",
+    "lint-fix": "eslint . --ext .js,.jsx --fix"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.1",
+    "eslint-plugin-tailwind-organizer": "file:../../"
+  }
+}
+

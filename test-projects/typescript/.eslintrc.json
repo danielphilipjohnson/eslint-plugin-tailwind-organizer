@@ -1,0 +1,16 @@
+{
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint", "tailwind-organizer"],
+  "extends": ["eslint:recommended"],
+  "rules": {
+    "tailwind-organizer/organize-classnames": "warn"
+  },
+  "parserOptions": {
+    "ecmaVersion": 2021,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  }
+}
+

@@ -1,0 +1,68 @@
+{
+  "name": "eslint-plugin-tailwind-organizer",
+  "version": "0.0.0",
+  "description": "ESLint plugin to organize Tailwind CSS class names using custom grouping",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./processor": "./src/processor.js",
+    "./rules/*": "./src/rules/*.js"
+  },
+  "bin": {
+    "fix-tailwind-classnames": "./bin/fix-classnames.js"
+  },
+  "files": [
+    "src",
+    "bin",
+    "README.md"
+  ],
+  "keywords": [
+    "eslint",
+    "eslintplugin",
+    "eslint-plugin",
+    "tailwind",
+    "tailwindcss",
+    "classnames",
+    "organize",
+    "format"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/danielphilipjohnson/eslint-plugin-tailwind-organizer.git"
+  },
+  "peerDependencies": {
+    "eslint": ">=8.0.0 <10.0.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.23.0",
+    "@babel/eslint-parser": "^7.23.0",
+    "@babel/preset-react": "^7.23.0",
+    "@changesets/cli": "^2.29.7",
+    "@vitest/coverage-v8": "^4.0.8",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^9.0.0",
+    "execa": "^9.6.0",
+    "prettier": "^3.0.0",
+    "vitest": "^4.0.8"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:eslint": "node tests/rules/organize-classnames.test.js",
+    "test:integration": "node scripts/test-integration.js",
+    "lint": "eslint src tests",
+    "format": "prettier --write \"**/*.{js,json,md}\"",
+    "format-check": "prettier --check \"**/*.{js,json,md}\"",
+    "prepublishOnly": "npm run lint && npm run test && npm run test:eslint",
+    "release": "changeset publish"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

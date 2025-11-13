@@ -1,0 +1,15 @@
+{
+  "name": "test-nextjs",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint-fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^14.0.0",
+    "eslint-plugin-tailwind-organizer": "file:../../"
+  }
+}
+
