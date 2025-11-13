@@ -7,7 +7,7 @@ on:
 
 permissions:
   contents: write
-  id-token: write
+  id-token: write        # ⭐ REQUIRED for OIDC / Trusted Publisher
   packages: write
   pull-requests: write
 
@@ -22,7 +22,7 @@ jobs:
         with:
           node-version: 20
           registry-url: 'https://registry.npmjs.org/'
-          always-auth: true
+          always-auth: true 
 
       - run: npm ci
       - run: npm run build --if-present
