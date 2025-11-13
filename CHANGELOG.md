@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.3
+
+### Patch Changes
+
+- 6651136: Fix: package json file for publishing
+
 ## 0.0.2
 
 ### Patch Changes
