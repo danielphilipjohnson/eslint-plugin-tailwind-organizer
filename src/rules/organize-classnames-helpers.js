@@ -125,9 +125,9 @@ export function addUtilityImportFixes(fixer, sourceCode, utility, format, useExp
       importStatement = `import { clsx } from "clsx";`;
     }
 
-    const utilityImportPattern = utility.name === "cn"
-      ? new RegExp(`import\s+.*\b${utility.name}\b.*from`)
-      : new RegExp(`import\s+.*\b${utility.name}\b.*from`);
+    const utilityImportPattern = new RegExp(
+      String.raw`import\s+.*\b${utility.name}\b.*from`
+    );
 
     const hasImport =
       text.includes(`from "${importPath}"`) ||
