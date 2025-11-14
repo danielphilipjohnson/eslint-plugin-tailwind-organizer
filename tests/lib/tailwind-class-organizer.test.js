@@ -5,8 +5,6 @@ const tailwindOrganizer = require("../../src/lib/tailwind-class-organizer.js");
 const { organizeClasses, generateJSXClassName, _internals } = tailwindOrganizer;
 const { matchesPattern } = _internals;
 
-// We need to test matchesPattern indirectly through organizeClasses
-// since it's not exported
 
 describe("organizeClasses", () => {
   describe("inline format (default)", () => {
@@ -265,6 +263,11 @@ describe("generateJSXClassName", () => {
     expect(result).toContain("flex");
   });
 
+  it("should handle a single ungrouped class", () => {
+    const result = generateJSXClassName("totally-ungrouped-class");
+    expect(result).toContain('"totally-ungrouped-class"');
+  });
+
   it("should append multiple layout utilities into the same block", () => {
     const result = generateJSXClassName("flex block inline-flex");
     expect(result).toContain('"flex block inline-flex"');
@@ -314,5 +317,112 @@ describe("generateJSXClassName", () => {
     expect(result).toContain('"before:alpha before:beta"');
     expect(result).toContain('"sm:alpha sm:beta"');
     expect(result).toContain('"dark:alpha dark:beta"');
+  });
+});
+
+describe("getUtilityFunction", () => {
+  // Mock sourceCode object for testing
+  const mockSourceCode = (text) => ({
+    getText: () => text,
+  });
+
+  it("should return cn if already imported", () => {
+    const sourceCode = mockSourceCode('import { cn } from "@/lib/utils";');
+    const result = tailwindOrganizer.getUtilityFunction(sourceCode);
+    expect(result).toEqual({ name: "cn", imported: true, importPath: null });
+  });
+
+  it("should return clsx if already imported", () => {
+    const sourceCode = mockSourceCode('import clsx from "clsx";');
+    const result = tailwindOrganizer.getUtilityFunction(sourceCode);
+    expect(result).toEqual({ name: "clsx", imported: true, importPath: null });
+  });
+
+  it("should return cn if cn() is used but not explicitly imported and clsx is not used", () => {
+    const sourceCode = mockSourceCode('const classes = cn("flex");');
+    const result = tailwindOrganizer.getUtilityFunction(sourceCode);
+    expect(result).toEqual({ name: "cn", imported: false, importPath: null });
+  });
+
+  it("should return clsx if clsx() is used but not explicitly imported and cn is not used", () => {
+    const sourceCode = mockSourceCode('const classes = clsx("flex");');
+    const result = tailwindOrganizer.getUtilityFunction(sourceCode);
+    expect(result).toEqual({ name: "clsx", imported: false, importPath: "clsx" });
+  });
+
+  it("should return cn if a common utils file is imported", () => {
+    const sourceCode = mockSourceCode('import { cn } from "../lib/utils";');
+    const result = tailwindOrganizer.getUtilityFunction(sourceCode);
+    expect(result).toEqual({ name: "cn", imported: true, importPath: null });
+  });
+
+  it("should return custom utility if specified", () => {
+    const sourceCode = mockSourceCode("");
+    const result = tailwindOrganizer.getUtilityFunction(
+      sourceCode,
+      "myClsx",
+      "~/utils/my-clsx"
+    );
+    expect(result).toEqual({
+      name: "myClsx",
+      imported: false,
+      importPath: "~/utils/my-clsx",
+    });
+  });
+
+  it("should default to clsx if no other conditions are met", () => {
+    const sourceCode = mockSourceCode("");
+    const result = tailwindOrganizer.getUtilityFunction(sourceCode);
+    expect(result).toEqual({ name: "clsx", imported: false, importPath: "clsx" });
+  });
+});
+
+describe("formatWithComments", () => {
+  it("should return original classes if no groups are found", () => {
+    const result = tailwindOrganizer.formatWithComments("");
+    expect(result).toBe("");
+  });
+
+  it("should return original classes directly if a single class is passed and gets grouped", () => {
+    const result = tailwindOrganizer.formatWithComments("flex");
+    expect(result).toBe("flex");
+  });
+
+  it("should format with comments and default utilityName", () => {
+    const result = tailwindOrganizer.formatWithComments("flex mt-4");
+    expect(result).toContain("{cn(");
+    expect(result).toContain("    // Layout");
+    expect(result).toContain('    "flex"');
+    expect(result).toContain("    // Spacing");
+    expect(result).toContain('    "mt-4"');
+  });
+
+  it("should format with comments and custom utilityName", () => {
+    const result = tailwindOrganizer.formatWithComments("flex mt-4", "clsx");
+    expect(result).toContain("{clsx(");
+    expect(result).toContain("    // Layout");
+    expect(result).toContain('    "flex"');
+    expect(result).toContain("    // Spacing");
+    expect(result).toContain('    "mt-4"');
+  });
+
+  it("should handle multiple groups with comments", () => {
+    const result = tailwindOrganizer.formatWithComments(
+      "flex items-center mt-4"
+    );
+    expect(result).toContain("    // Layout");
+    expect(result).toContain('    "flex"');
+    expect(result).toContain("    // Alignment");
+    expect(result).toContain('    "items-center"');
+    expect(result).toContain("    // Spacing");
+    expect(result).toContain('    "mt-4"');
+  });
+
+  it("should handle ungrouped classes in formatWithComments", () => {
+    const result = tailwindOrganizer.formatWithComments("flex unknown-class");
+    expect(result).toContain("    // Layout");
+    expect(result).toContain('    "flex"');
+    expect(result).toContain("    // Other");
+    expect(result).toContain('    "unknown-class"');
   });
 });
