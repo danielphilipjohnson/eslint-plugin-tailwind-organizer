@@ -4,7 +4,9 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "node",
-    include: ["tests/**/*.test.js"],
+    pool: "threads",
+    include: ["tests/**/*.test.js", "tests/**/*.vitest.js"],
+    exclude: ["tests/rules/**/*.test.js"],
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
@@ -13,4 +15,3 @@ export default defineConfig({
     },
   },
 });
-
