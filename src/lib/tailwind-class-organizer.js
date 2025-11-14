@@ -503,7 +503,7 @@ function formatWithComments(classes, utilityName = "cn") {
   });
 
   return `{${utilityName}(
-${parts.join(",\n")} 
+${parts.join(",\n")}
   )}`;
 }
 
