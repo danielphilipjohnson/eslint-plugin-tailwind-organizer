@@ -1,5 +1,3 @@
-// tailwind-class-organizer.js
-
 // Define class groups with labels
 const classGroups = [
   {
@@ -438,17 +436,82 @@ function generateJSXClassName(classString, options) {
     output += `    "${ungrouped.join(" ")}",\n`;
   }
 
-  output += `  )}\n/>`;
+  output += `  )}
+/>`;
 
   return output;
 }
 
+function getOrganizedGroups(classes) {
+  // Use multiline format to get organized groups with comments
+  const multiline = organizeClasses(classes, { format: "multiline" });
+  const lines = multiline.split("\n");
+
+  // Build array of {comment, classes} pairs
+  const groups = [];
+  let currentComment = null;
+  let currentClasses = [];
+
+  lines.forEach((line) => {
+    if (line.startsWith("//")) {
+      // Save previous group if exists
+      if (currentComment !== null || currentClasses.length > 0) {
+        groups.push({
+          comment: currentComment,
+          classes: currentClasses.join(" "),
+        });
+      }
+      // Start new group
+      currentComment = line.substring(2).trim();
+      currentClasses = [];
+    } else if (line.trim()) {
+      currentClasses.push(line.trim());
+    }
+  });
+
+  // Don't forget the last group
+  if (currentComment !== null || currentClasses.length > 0) {
+    groups.push({
+      comment: currentComment,
+      classes: currentClasses.join(" "),
+    });
+  }
+
+  return groups.filter((g) => g.classes);
+}
+
+function formatWithComments(classes, utilityName = "cn") {
+  const groups = getOrganizedGroups(classes);
+
+  if (groups.length === 0) {
+    return classes;
+  }
+
+
+
+  // Format as utility function (cn() or clsx()) with comments
+  const parts = groups.map((g) => {
+    if (g.comment) {
+      return `    // ${g.comment}\n    "${g.classes}"`;
+    }
+    return `    "${g.classes}"`;
+  });
+
+  return `{${utilityName}(
+${parts.join(",\n")}
+  )}`;
+}
+
 // Export functions
-module.exports = {
+const _internals = {
+  matchesPattern,
+};
+
+export {
   organizeClasses,
   generateJSXClassName,
+  getOrganizedGroups,
+  formatWithComments,
   // Expose helpers for testing and advanced usage
-  _internals: {
-    matchesPattern,
-  },
+  _internals,
 };

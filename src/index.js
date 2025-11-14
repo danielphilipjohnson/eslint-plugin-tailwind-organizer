@@ -1,14 +1,16 @@
-const organizeClassnames = require("./rules/organize-classnames");
-const { organizeClasses, generateJSXClassName } = require("./lib/tailwind-class-organizer");
+import organizeClassnamesRule from "./rules/organize-classnames.js";
+import { organizeClasses, generateJSXClassName } from "./lib/tailwind-class-organizer.js";
 
-module.exports = {
-  rules: {
-    "organize-classnames": organizeClassnames,
-  },
-  // Export utilities for advanced users
-  utils: {
-    organizeClasses,
-    generateJSXClassName,
-  },
+export const rules = {
+  "organize-classnames": organizeClassnamesRule,
 };
 
+export const utils = {
+  organizeClasses,
+  generateJSXClassName,
+};
+
+export default {
+  rules,
+  utils,
+};

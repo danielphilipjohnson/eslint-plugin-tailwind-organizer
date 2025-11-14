@@ -1,5 +1,6 @@
 const { RuleTester } = require("eslint");
-const rule = require("../../src/rules/organize-classnames");
+const ruleModule = require("../../src/rules/organize-classnames.js");
+const rule = ruleModule.default || ruleModule;
 
 const ruleTester = new RuleTester({
   parser: require.resolve("@babel/eslint-parser"),
