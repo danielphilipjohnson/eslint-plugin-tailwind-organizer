@@ -1,5 +1,3 @@
-// tailwind-class-organizer.js
-
 // Define class groups with labels
 const classGroups = [
   {
@@ -438,15 +436,168 @@ function generateJSXClassName(classString, options) {
     output += `    "${ungrouped.join(" ")}",\n`;
   }
 
-  output += `  )}\n/>`;
+  output += `  )}
+/>`;
 
   return output;
+}
+
+function getOrganizedGroups(classes) {
+  // Use multiline format to get organized groups with comments
+  const multiline = organizeClasses(classes, { format: "multiline" });
+  const lines = multiline.split("\n");
+
+  // Build array of {comment, classes} pairs
+  const groups = [];
+  let currentComment = null;
+  let currentClasses = [];
+
+  lines.forEach((line) => {
+    if (line.startsWith("//")) {
+      // Save previous group if exists
+      if (currentComment !== null || currentClasses.length > 0) {
+        groups.push({
+          comment: currentComment,
+          classes: currentClasses.join(" "),
+        });
+      }
+      // Start new group
+      currentComment = line.substring(2).trim();
+      currentClasses = [];
+    } else if (line.trim()) {
+      currentClasses.push(line.trim());
+    }
+  });
+
+  // Don't forget the last group
+  if (currentComment !== null || currentClasses.length > 0) {
+    groups.push({
+      comment: currentComment,
+      classes: currentClasses.join(" "),
+    });
+  }
+
+  return groups.filter((g) => g.classes);
+}
+
+function formatWithComments(classes, utilityName = "cn") {
+  const groups = getOrganizedGroups(classes);
+
+  if (groups.length === 0) {
+    return classes;
+  }
+
+  // If there's only one group and its classes string is identical to the original input,
+  // and it has a comment, it means the original input was a single class that got grouped.
+  // In this specific case, we should return the classes string directly without wrapping it in cn().
+  if (groups.length === 1 && groups[0].classes === classes && groups[0].comment) {
+    return classes;
+  }
+
+  // Format as utility function (cn() or clsx()) with comments
+  const parts = groups.map((g) => {
+    if (g.comment) {
+      return `    // ${g.comment}\n    "${g.classes}"`;
+    }
+    return `    "${g.classes}"`;
+  });
+
+  return `{${utilityName}(
+${parts.join(",\n")} 
+  )}`;
+}
+
+function hasCnImport(sourceCode) {
+  const text = sourceCode.getText();
+  // Check for various import patterns - be more thorough
+  return (
+    // Named import: import { cn } from "..."
+    /import\s+.*\{[^}]*\bcn\b[^}]*\}.*from/.test(text) ||
+    // Default import: import cn from "..."
+    /import\s+cn\s+from/.test(text) ||
+    // Mixed: import cn, { other } from "..." or import { other, cn } from "..."
+    /import\s+.*\bcn\b.*from/.test(text) ||
+    // Require: const cn = require("...")
+    /require\s*\([^)]*cn/.test(text) ||
+    // Already using cn() in the file (indicates it's available)
+    /className\s*=\s*\{cn\(/.test(text)
+  );
+}
+
+function hasClsxImport(sourceCode) {
+  const text = sourceCode.getText();
+  // Check for clsx import patterns
+  return (
+    // Named import: import { clsx } from "..."
+    /import\s+.*\{[^}]*\bclsx\b[^}]*\}.*from/.test(text) ||
+    // Default import: import clsx from "..."
+    /import\s+clsx\s+from/.test(text) ||
+    // Mixed imports
+    /import\s+.*\bclsx\b.*from/.test(text) ||
+    // Require: const clsx = require("...")
+    /require\s*\([^)]*clsx/.test(text) ||
+    // Already using clsx() in the file
+    /className\s*=\s*\{clsx\(/.test(text)
+  );
+}
+
+// ! cant i just check if there is a function present in the
+function getUtilityFunction(sourceCode, customUtility, customImportPath) {
+  const text = sourceCode.getText();
+  
+  // Check if already imported (prefer cn if both are imported)
+  if (hasCnImport(sourceCode)) {
+    return { name: "cn", imported: true, importPath: null };
+  }
+  if (hasClsxImport(sourceCode)) {
+    return { name: "clsx", imported: true, importPath: null };
+  }
+  
+  // Neither is imported - try to detect which is more likely available
+  // Check if clsx is being used elsewhere in the file (indicates it's available)
+  const hasClsxUsage = /clsx\(/.test(text);
+  const hasCnUsage = /cn\(/.test(text);
+  
+  // If cn is being used but not imported, it's likely available
+  if (hasCnUsage && !hasClsxUsage) {
+    return { name: "cn", imported: false, importPath: null };
+  }
+  
+  // Check for common cn utility file patterns
+  const hasUtilsFile = 
+    text.includes('from "@/lib/utils"') ||
+    text.includes("from '@/lib/utils'") ||
+    text.includes('from "../lib/utils"') ||
+    text.includes("from '../lib/utils'") ||
+    text.includes('from "./lib/utils"') ||
+    text.includes("from './lib/utils'");
+  
+  // If utils file is imported, cn is likely available there
+  if (hasUtilsFile) {
+    return { name: "cn", imported: false, importPath: null };
+  }
+  
+  // Use custom utility if specified in config
+  if (customUtility) {
+    return {
+      name: customUtility,
+      imported: false,
+      importPath: customImportPath || null
+    };
+  }
+  // Default to clsx (standard npm package, required dependency)
+  return { name: "clsx", imported: false, importPath: "clsx" };
 }
 
 // Export functions
 module.exports = {
   organizeClasses,
   generateJSXClassName,
+  getOrganizedGroups,
+  formatWithComments,
+  hasCnImport,
+  hasClsxImport,
+  getUtilityFunction,
   // Expose helpers for testing and advanced usage
   _internals: {
     matchesPattern,
