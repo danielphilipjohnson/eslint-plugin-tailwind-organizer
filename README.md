@@ -1,5 +1,52 @@
 # 🧩 eslint-plugin-tailwind-organizer
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/danielphilipjohnson/eslint-plugin-tailwind-organizer/main/.github/assets/header.png" width="450" alt="Tailwind Organizer Logo" />
+</p>
+
+<p align="center">
+
+  <!-- NPM Version -->
+  <a href="https://www.npmjs.com/package/eslint-plugin-tailwind-organizer">
+    <img src="https://img.shields.io/npm/v/eslint-plugin-tailwind-organizer?color=%234F46E5&label=npm%20version&logo=npm" alt="npm version">
+  </a>
+
+  <!-- NPM Downloads -->
+  <a href="https://www.npmjs.com/package/eslint-plugin-tailwind-organizer">
+    <img src="https://img.shields.io/npm/dm/eslint-plugin-tailwind-organizer?color=%230EA5E9&label=downloads&logo=npm" alt="npm downloads">
+  </a>
+
+  <!-- CI Status -->
+  <a href="https://github.com/danielphilipjohnson/eslint-plugin-tailwind-organizer/actions/workflows/release.yml">
+    <img src="https://github.com/danielphilipjohnson/eslint-plugin-tailwind-organizer/actions/workflows/release.yml/badge.svg" alt="CI Status">
+  </a>
+
+  <!-- Canary Pre-release Badge -->
+  <a href="https://www.npmjs.com/package/eslint-plugin-tailwind-organizer/v/canary">
+    <img src="https://img.shields.io/npm/v/eslint-plugin-tailwind-organizer/canary?label=canary&color=%23A855F7" alt="Canary Version">
+  </a>
+
+  <!-- Alpha Pre-release Badge -->
+  <a href="https://www.npmjs.com/package/eslint-plugin-tailwind-organizer/v/alpha">
+    <img src="https://img.shields.io/npm/v/eslint-plugin-tailwind-organizer/alpha?label=alpha&color=%23F97316" alt="Alpha Version">
+  </a>
+
+  <!-- Beta Pre-release Badge -->
+  <a href="https://www.npmjs.com/package/eslint-plugin-tailwind-organizer/v/beta">
+    <img src="https://img.shields.io/npm/v/eslint-plugin-tailwind-organizer/beta?label=beta&color=%23EA580C" alt="Beta Version">
+  </a>
+
+  <!-- ESLint Compatibility -->
+  <img src="https://img.shields.io/badge/eslint-%5E8.0.0%20%7C%20%3C10.0.0-4B5563?logo=eslint" alt="ESLint compatibility">
+
+  <!-- Code coverage -->
+  <a href="https://codecov.io/gh/danielphilipjohnson/eslint-plugin-tailwind-organizer">
+    <img src="https://img.shields.io/codecov/c/github/danielphilipjohnson/eslint-plugin-tailwind-organizer?logo=codecov&color=%2390cdf4" alt="Code coverage">
+  </a>
+
+</p>
+
+
 **Automatically organize your Tailwind CSS class names — clean, predictable, and consistent.**
 
 Tailwind is powerful, but large `className=""` strings quickly become unreadable.
