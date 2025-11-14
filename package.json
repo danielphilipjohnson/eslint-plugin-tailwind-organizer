@@ -59,8 +59,8 @@
     "format-check": "prettier --check \"**/*.{js,json,md}\"",
     "prepublishOnly": "npm run lint && npm run test && npm run test:eslint",
     "release": "changeset publish",
-    "benchmark:synthetic": "node benchmarks/organize-classnames.benchmark.js",
-    "benchmark:real-life": "node benchmarks/real-life.benchmark.js"
+    "benchmark:synthetic": "node benchmarks/organize-classnames.benchmark.cjs",
+    "benchmark:real-life": "node benchmarks/real-life.benchmark.cjs"
   },
   "publishConfig": {
     "access": "public",
