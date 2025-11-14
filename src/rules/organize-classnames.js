@@ -1,151 +1,16 @@
 /* eslint-disable */
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { organizeClasses } = require("../lib/tailwind-class-organizer");
+import {
+  organizeClasses,
+  formatWithComments,
+} from "eslint-plugin-tailwind-organizer/lib/tailwind-class-organizer";
 
-function getOrganizedGroups(classes) {
-  // Use multiline format to get organized groups with comments
-  const multiline = organizeClasses(classes, { format: "multiline" });
-  const lines = multiline.split("\n");
+import {
+  getUtilityFunction,
+  addUtilityImportFixes,
+  applyClassNameFixes,
+} from "eslint-plugin-tailwind-organizer/rules/organize-classnames-helpers";
 
-  // Build array of {comment, classes} pairs
-  const groups = [];
-  let currentComment = null;
-  let currentClasses = [];
-
-  lines.forEach((line) => {
-    if (line.startsWith("//")) {
-      // Save previous group if exists
-      if (currentComment !== null || currentClasses.length > 0) {
-        groups.push({
-          comment: currentComment,
-          classes: currentClasses.join(" "),
-        });
-      }
-      // Start new group
-      currentComment = line.substring(2).trim();
-      currentClasses = [];
-    } else if (line.trim()) {
-      currentClasses.push(line.trim());
-    }
-  });
-
-  // Don't forget the last group
-  if (currentComment !== null || currentClasses.length > 0) {
-    groups.push({
-      comment: currentComment,
-      classes: currentClasses.join(" "),
-    });
-  }
-
-  return groups.filter((g) => g.classes);
-}
-
-function formatWithComments(classes, utilityName = "cn") {
-  const groups = getOrganizedGroups(classes);
-
-  if (groups.length === 0) {
-    return classes;
-  }
-
-  if (groups.length === 1 && !groups[0].comment) {
-    // Single group without comment, just return classes
-    return groups[0].classes;
-  }
-
-  // Format as utility function (cn() or clsx()) with comments
-  const parts = groups.map((g) => {
-    if (g.comment) {
-      return `    // ${g.comment}\n    "${g.classes}"`;
-    }
-    return `    "${g.classes}"`;
-  });
-
-  return `{${utilityName}(\n${parts.join(",\n")}\n  )}`;
-}
-
-function hasCnImport(sourceCode) {
-  const text = sourceCode.getText();
-  // Check for various import patterns - be more thorough
-  return (
-    // Named import: import { cn } from "..."
-    /import\s+.*\{[^}]*\bcn\b[^}]*\}.*from/.test(text) ||
-    // Default import: import cn from "..."
-    /import\s+cn\s+from/.test(text) ||
-    // Mixed: import cn, { other } from "..." or import { other, cn } from "..."
-    /import\s+.*\bcn\b.*from/.test(text) ||
-    // Require: const cn = require("...")
-    /require\s*\([^)]*cn/.test(text) ||
-    // Already using cn() in the file (indicates it's available)
-    /className\s*=\s*\{cn\(/.test(text)
-  );
-}
-
-function hasClsxImport(sourceCode) {
-  const text = sourceCode.getText();
-  // Check for clsx import patterns
-  return (
-    // Named import: import { clsx } from "..."
-    /import\s+.*\{[^}]*\bclsx\b[^}]*\}.*from/.test(text) ||
-    // Default import: import clsx from "..."
-    /import\s+clsx\s+from/.test(text) ||
-    // Mixed imports
-    /import\s+.*\bclsx\b.*from/.test(text) ||
-    // Require: const clsx = require("...")
-    /require\s*\([^)]*clsx/.test(text) ||
-    // Already using clsx() in the file
-    /className\s*=\s*\{clsx\(/.test(text)
-  );
-}
-
-function getUtilityFunction(sourceCode, customUtility, customImportPath) {
-  const text = sourceCode.getText();
-  
-  // Check if already imported (prefer cn if both are imported)
-  if (hasCnImport(sourceCode)) {
-    return { name: "cn", imported: true, importPath: null };
-  }
-  if (hasClsxImport(sourceCode)) {
-    return { name: "clsx", imported: true, importPath: null };
-  }
-  
-  // Neither is imported - try to detect which is more likely available
-  // Check if clsx is being used elsewhere in the file (indicates it's available)
-  const hasClsxUsage = /clsx\(/.test(text);
-  const hasCnUsage = /cn\(/.test(text);
-  
-  // If cn is being used but not imported, it's likely available
-  if (hasCnUsage && !hasClsxUsage) {
-    return { name: "cn", imported: false, importPath: null };
-  }
-  
-  // Check for common cn utility file patterns
-  const hasUtilsFile = 
-    text.includes('from "@/lib/utils"') ||
-    text.includes("from '@/lib/utils'") ||
-    text.includes('from "../lib/utils"') ||
-    text.includes("from '../lib/utils'") ||
-    text.includes('from "./lib/utils"') ||
-    text.includes("from './lib/utils'");
-  
-  // If utils file is imported, cn is likely available there
-  if (hasUtilsFile) {
-    return { name: "cn", imported: false, importPath: null };
-  }
-  
-  // Use custom utility if specified in config
-  if (customUtility) {
-    return { 
-      name: customUtility, 
-      imported: false, 
-      importPath: customImportPath || null 
-    };
-  }
-  
-  // Default to clsx (standard npm package, required dependency)
-  return { name: "clsx", imported: false, importPath: "clsx" };
-}
-
-module.exports = {
+export default {
   meta: {
     type: "layout",
     docs: {
@@ -193,8 +58,7 @@ module.exports = {
     // Auto-detect: if format is "auto" and utility (cn/clsx) is imported, use comments
     // If format is "with-comments", always use utility format with comments (will auto-add import)
     // If format is explicitly "inline", always use inline
-    const useComments =
-      format === "with-comments" || (format === "auto" && hasUtility);
+    const useComments = format === "with-comments" || (format === "auto" && hasUtility);
     const forceInline = format === "inline";
 
     return {
@@ -270,155 +134,34 @@ module.exports = {
             node: node.value,
             message: "Class names should be organized",
             fix(fixer) {
-              const fixes = [];
+              let fixes = [];
               
-              // If using with-comments format and utility is not imported, add the import
-              // (We always use utility format for comments, so import is required)
-              const needsUtilityImport =
-                format === "with-comments" &&
-                !utility.imported &&
-                useExpressionFormat &&
-                organized.startsWith(`{${utility.name}(`);
+              // Add fixes for utility import if needed
+              fixes = fixes.concat(
+                addUtilityImportFixes(
+                  fixer,
+                  sourceCode,
+                  utility,
+                  format,
+                  useExpressionFormat,
+                  organized
+                )
+              );
               
-              if (needsUtilityImport) {
-                const text = sourceCode.getText();
-                const hasAtAlias =
-                  text.includes('from "@') || text.includes("from '@");
-                
-                // Determine import path based on utility type
-                let importPath;
-                let importStatement;
-                
-                if (utility.importPath) {
-                  // Use custom import path if specified
-                  importPath = utility.importPath;
-                  importStatement = `import { ${utility.name} } from "${importPath}";`;
-                } else if (utility.name === "cn") {
-                  // cn is typically in utils file
-                  // Try to detect the existing utils import path
-                  const utilsImportMatch = text.match(/from\s+["']([^"']*\/lib\/utils)["']/);
-                  if (utilsImportMatch) {
-                    importPath = utilsImportMatch[1];
-                  } else {
-                    importPath = hasAtAlias ? '@/lib/utils' : '../lib/utils';
-                  }
-                  importStatement = `import { cn } from "${importPath}";`;
-                } else {
-                  // clsx is from the clsx package (default, required dependency)
-                  importPath = 'clsx';
-                  importStatement = `import { clsx } from "clsx";`;
-                }
-                
-                // Check if import already exists (check various patterns)
-                const utilityImportPattern = utility.name === "cn" 
-                  ? new RegExp(`import\\s+.*\\b${utility.name}\\b.*from`)
-                  : new RegExp(`import\\s+.*\\b${utility.name}\\b.*from`);
-                
-                const hasImport =
-                  text.includes(`from "${importPath}"`) ||
-                  text.includes(`from '${importPath}'`) ||
-                  (utility.name === "cn" && (
-                    text.includes('from "@/lib/utils"') ||
-                    text.includes("from '@/lib/utils'") ||
-                    text.includes('from "../lib/utils"') ||
-                    text.includes("from '../lib/utils'") ||
-                    text.includes('from "./lib/utils"') ||
-                    text.includes("from './lib/utils'")
-                  )) ||
-                  utilityImportPattern.test(text);
-                
-                if (!hasImport) {
-                  // Find the best place to add the import
-                  // Look for all import statements
-                  const importRegex = /import\s+[^;]+;/g;
-                  const imports = [];
-                  let match;
-                  while ((match = importRegex.exec(text)) !== null) {
-                    imports.push({
-                      text: match[0],
-                      index: match.index,
-                      endIndex: match.index + match[0].length,
-                    });
-                  }
-                  
-                  if (imports.length > 0) {
-                    // Add after the last import
-                    const lastImport = imports[imports.length - 1];
-                    fixes.push(
-                      fixer.insertTextAfterRange(
-                        [lastImport.index, lastImport.endIndex],
-                        `\n${importStatement}`
-                      )
-                    );
-                  } else {
-                    // Add at the beginning of the file
-                    fixes.push(
-                      fixer.insertTextBeforeRange([0, 0], `${importStatement}\n`)
-                    );
-                  }
-                }
-              }
-              
-              // Fix the className attribute
-              if (useExpressionFormat) {
-                // Replace with expression format (cn())
-                const attributeRange = [
-                  node.name.range[0],
-                  node.value.range[1],
-                ];
-                fixes.push(
-                  fixer.replaceTextRange(
-                    attributeRange,
-                    `className=${organized}`
-                  )
-                );
-              } else {
-                // Simple string/template literal replacement
-                if (isTemplateLiteral) {
-                  // Convert template literal to string or cn() format
-                  if (useComments && preferCn) {
-                    // Convert to cn() format
-                    const attributeRange = [
-                      node.name.range[0],
-                      node.value.range[1],
-                    ];
-                    fixes.push(
-                      fixer.replaceTextRange(
-                        attributeRange,
-                        `className=${formatWithComments(cleanClasses, true)}`
-                      )
-                    );
-                  } else {
-                    // Convert to string literal
-                    const replacement = `"${organized}"`;
-                    if (node.value.range && Array.isArray(node.value.range)) {
-                      fixes.push(
-                        fixer.replaceTextRange(node.value.range, replacement)
-                      );
-                    } else {
-                      fixes.push(fixer.replaceText(node.value, replacement));
-                    }
-                  }
-                } else {
-                  // String literal replacement
-                  const sourceText = sourceCode.getText(node.value);
-                  const quoteChar =
-                    sourceText[0] === '"'
-                      ? '"'
-                      : sourceText[0] === "'"
-                        ? "'"
-                        : '"';
-                  const replacement = `${quoteChar}${organized}${quoteChar}`;
-
-                  if (node.value.range && Array.isArray(node.value.range)) {
-                    fixes.push(
-                      fixer.replaceTextRange(node.value.range, replacement)
-                    );
-                  } else {
-                    fixes.push(fixer.replaceText(node.value, replacement));
-                  }
-                }
-              }
+              // Add fixes for className attribute
+              fixes = fixes.concat(
+                applyClassNameFixes(
+                  fixer,
+                  node,
+                  organized,
+                  isTemplateLiteral,
+                  useExpressionFormat,
+                  useComments,
+                  utility.name,
+                  cleanClasses,
+                  sourceCode
+                )
+              );
               
               return fixes;
             },

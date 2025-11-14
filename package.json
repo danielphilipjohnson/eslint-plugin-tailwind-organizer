@@ -1,19 +1,18 @@
 {
   "name": "eslint-plugin-tailwind-organizer",
-  "version": "0.0.11",
+  "version": "0.0.1",
   "description": "ESLint plugin to organize Tailwind CSS class names using custom grouping",
+  "type": "module",
   "main": "src/index.js",
   "exports": {
     ".": "./src/index.js",
     "./processor": "./src/processor.js",
-    "./rules/*": "./src/rules/*.js"
+    "./rules/*": "./src/rules/*.js",
+    "./lib/*": "./src/lib/*.js"
   },
-  "bin": {
-    "fix-tailwind-classnames": "bin/fix-classnames.js"
-  },
+
   "files": [
     "src",
-    "bin",
     "README.md"
   ],
   "keywords": [
@@ -41,6 +40,7 @@
     "@babel/preset-react": "^7.23.0",
     "@changesets/changelog-github": "^0.5.1",
     "@changesets/cli": "^2.29.7",
+    "@vitejs/plugin-react": "^5.1.1",
     "@vitest/coverage-v8": "^4.0.8",
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^9.0.0",
@@ -52,13 +52,15 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "test:eslint": "node tests/rules/organize-classnames.test.js",
+    "test:eslint": "node tests/rules/organize-classnames.test.cjs",
     "test:integration": "node scripts/test-integration.js",
     "lint": "eslint src tests",
     "format": "prettier --write \"**/*.{js,json,md}\"",
     "format-check": "prettier --check \"**/*.{js,json,md}\"",
     "prepublishOnly": "npm run lint && npm run test && npm run test:eslint",
-    "release": "changeset publish"
+    "release": "changeset publish",
+    "benchmark:synthetic": "node benchmarks/organize-classnames.benchmark.cjs",
+    "benchmark:real-life": "node benchmarks/real-life.benchmark.cjs"
   },
   "publishConfig": {
     "access": "public",
