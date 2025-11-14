@@ -3,7 +3,9 @@ name: Alpha/Beta Pre-Release
 on:
   push:
     branches:
+      - "alpha"
       - "alpha/**"
+      - "beta"
       - "beta/**"
 
 permissions:
