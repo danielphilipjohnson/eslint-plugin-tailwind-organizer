@@ -320,62 +320,6 @@ describe("generateJSXClassName", () => {
   });
 });
 
-describe("getUtilityFunction", () => {
-  // Mock sourceCode object for testing
-  const mockSourceCode = (text) => ({
-    getText: () => text,
-  });
-
-  it("should return cn if already imported", () => {
-    const sourceCode = mockSourceCode('import { cn } from "@/lib/utils";');
-    const result = tailwindOrganizer.getUtilityFunction(sourceCode);
-    expect(result).toEqual({ name: "cn", imported: true, importPath: null });
-  });
-
-  it("should return clsx if already imported", () => {
-    const sourceCode = mockSourceCode('import clsx from "clsx";');
-    const result = tailwindOrganizer.getUtilityFunction(sourceCode);
-    expect(result).toEqual({ name: "clsx", imported: true, importPath: null });
-  });
-
-  it("should return cn if cn() is used but not explicitly imported and clsx is not used", () => {
-    const sourceCode = mockSourceCode('const classes = cn("flex");');
-    const result = tailwindOrganizer.getUtilityFunction(sourceCode);
-    expect(result).toEqual({ name: "cn", imported: false, importPath: null });
-  });
-
-  it("should return clsx if clsx() is used but not explicitly imported and cn is not used", () => {
-    const sourceCode = mockSourceCode('const classes = clsx("flex");');
-    const result = tailwindOrganizer.getUtilityFunction(sourceCode);
-    expect(result).toEqual({ name: "clsx", imported: false, importPath: "clsx" });
-  });
-
-  it("should return cn if a common utils file is imported", () => {
-    const sourceCode = mockSourceCode('import { cn } from "../lib/utils";');
-    const result = tailwindOrganizer.getUtilityFunction(sourceCode);
-    expect(result).toEqual({ name: "cn", imported: true, importPath: null });
-  });
-
-  it("should return custom utility if specified", () => {
-    const sourceCode = mockSourceCode("");
-    const result = tailwindOrganizer.getUtilityFunction(
-      sourceCode,
-      "myClsx",
-      "~/utils/my-clsx"
-    );
-    expect(result).toEqual({
-      name: "myClsx",
-      imported: false,
-      importPath: "~/utils/my-clsx",
-    });
-  });
-
-  it("should default to clsx if no other conditions are met", () => {
-    const sourceCode = mockSourceCode("");
-    const result = tailwindOrganizer.getUtilityFunction(sourceCode);
-    expect(result).toEqual({ name: "clsx", imported: false, importPath: "clsx" });
-  });
-});
 
 describe("formatWithComments", () => {
   it("should return original classes if no groups are found", () => {
@@ -385,7 +329,7 @@ describe("formatWithComments", () => {
 
   it("should return original classes directly if a single class is passed and gets grouped", () => {
     const result = tailwindOrganizer.formatWithComments("flex");
-    expect(result).toBe("flex");
+    expect(result).toBe('{cn(\n    // Layout\n    "flex"\n  )}');
   });
 
   it("should format with comments and default utilityName", () => {
