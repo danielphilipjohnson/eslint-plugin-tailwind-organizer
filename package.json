@@ -8,12 +8,9 @@
     "./processor": "./src/processor.js",
     "./rules/*": "./src/rules/*.js"
   },
-  "bin": {
-    "fix-tailwind-classnames": "bin/fix-classnames.js"
-  },
+
   "files": [
     "src",
-    "bin",
     "README.md"
   ],
   "keywords": [
@@ -59,7 +56,9 @@
     "format": "prettier --write \"**/*.{js,json,md}\"",
     "format-check": "prettier --check \"**/*.{js,json,md}\"",
     "prepublishOnly": "npm run lint && npm run test && npm run test:eslint",
-    "release": "changeset publish"
+    "release": "changeset publish",
+    "benchmark:synthetic": "node benchmarks/organize-classnames.benchmark.js",
+    "benchmark:real-life": "node benchmarks/real-life.benchmark.js"
   },
   "publishConfig": {
     "access": "public",
