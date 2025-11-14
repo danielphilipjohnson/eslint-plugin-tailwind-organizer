@@ -1,11 +1,16 @@
 /* eslint-disable */
-const {
+import {
   organizeClasses,
   formatWithComments,
-  getUtilityFunction,
-} = require("../lib/tailwind-class-organizer");
+} from "eslint-plugin-tailwind-organizer/lib/tailwind-class-organizer";
 
-module.exports = {
+import {
+  getUtilityFunction,
+  addUtilityImportFixes,
+  applyClassNameFixes,
+} from "eslint-plugin-tailwind-organizer/rules/organize-classnames-helpers";
+
+export default {
   meta: {
     type: "layout",
     docs: {
@@ -129,155 +134,34 @@ module.exports = {
             node: node.value,
             message: "Class names should be organized",
             fix(fixer) {
-              const fixes = [];
+              let fixes = [];
               
-              // If using with-comments format and utility is not imported, add the import
-              // (We always use utility format for comments, so import is required)
-              const needsUtilityImport =
-                format === "with-comments" &&
-                !utility.imported &&
-                useExpressionFormat &&
-                organized.startsWith(`{${utility.name}(`);
+              // Add fixes for utility import if needed
+              fixes = fixes.concat(
+                addUtilityImportFixes(
+                  fixer,
+                  sourceCode,
+                  utility,
+                  format,
+                  useExpressionFormat,
+                  organized
+                )
+              );
               
-              if (needsUtilityImport) {
-                const text = sourceCode.getText();
-                const hasAtAlias =
-                  text.includes('from "@"') || text.includes("from '@");
-                
-                // Determine import path based on utility type
-                let importPath;
-                let importStatement;
-                
-                if (utility.importPath) {
-                  // Use custom import path if specified
-                  importPath = utility.importPath;
-                  importStatement = `import { ${utility.name} } from "${importPath}";`;
-                } else if (utility.name === "cn") {
-                  // cn is typically in utils file
-                  // Try to detect the existing utils import path
-                  const utilsImportMatch = text.match(/from\s+["']([^"']*\/lib\/utils)["']/);
-                  if (utilsImportMatch) {
-                    importPath = utilsImportMatch[1];
-                  } else {
-                    importPath = hasAtAlias ? '@/lib/utils' : '../lib/utils';
-                  }
-                  importStatement = `import { cn } from "${importPath}";`;
-                } else {
-                  // clsx is from the clsx package (default, required dependency)
-                  importPath = 'clsx';
-                  importStatement = `import { clsx } from "clsx";`;
-                }
-                
-                // Check if import already exists (check various patterns)
-                const utilityImportPattern = utility.name === "cn" 
-                  ? new RegExp(`import\s+.*\b${utility.name}\b.*from`)
-                  : new RegExp(`import\s+.*\b${utility.name}\b.*from`);
-                
-                const hasImport =
-                  text.includes(`from "${importPath}"`) ||
-                  text.includes(`from '${importPath}'`) ||
-                  (utility.name === "cn" && (
-                    text.includes('from "@/lib/utils"') ||
-                    text.includes("from '@/lib/utils'") ||
-                    text.includes('from "../lib/utils"') ||
-                    text.includes("from '../lib/utils'") ||
-                    text.includes('from "./lib/utils"') ||
-                    text.includes("from './lib/utils'")
-                  )) ||
-                  utilityImportPattern.test(text);
-                
-                if (!hasImport) {
-                  // Find the best place to add the import
-                  // Look for all import statements
-                  const importRegex = /import\s+[^;]+;/g;
-                  const imports = [];
-                  let match;
-                  while ((match = importRegex.exec(text)) !== null) {
-                    imports.push({
-                      text: match[0],
-                      index: match.index,
-                      endIndex: match.index + match[0].length,
-                    });
-                  }
-                  
-                  if (imports.length > 0) {
-                    // Add after the last import
-                    const lastImport = imports[imports.length - 1];
-                    fixes.push(
-                      fixer.insertTextAfterRange(
-                        [lastImport.index, lastImport.endIndex],
-                        `\n${importStatement}`
-                      )
-                    );
-                  } else {
-                    // Add at the beginning of the file
-                    fixes.push(
-                      fixer.insertTextBeforeRange([0, 0], `${importStatement}\n`)
-                    );
-                  }
-                }
-              }
-              
-              // Fix the className attribute
-              if (useExpressionFormat) {
-                // Replace with expression format (cn())
-                const attributeRange = [
-                  node.name.range[0],
-                  node.value.range[1],
-                ];
-                fixes.push(
-                  fixer.replaceTextRange(
-                    attributeRange,
-                    `className=${organized}`
-                  )
-                );
-              } else {
-                // Simple string/template literal replacement
-                if (isTemplateLiteral) {
-                  // Convert template literal to string or cn() format
-                  if (useComments && utility.name) { // Changed preferCn to utility.name
-                    // Convert to cn() format
-                    const attributeRange = [
-                      node.name.range[0],
-                      node.value.range[1],
-                    ];
-                    fixes.push(
-                      fixer.replaceTextRange(
-                        attributeRange,
-                        `className=${formatWithComments(cleanClasses, utility.name)}` // Changed true to utility.name
-                      )
-                    );
-                  } else {
-                    // Convert to string literal
-                    const replacement = `"${organized}"`;
-                    if (node.value.range && Array.isArray(node.value.range)) {
-                      fixes.push(
-                        fixer.replaceTextRange(node.value.range, replacement)
-                      );
-                    } else {
-                      fixes.push(fixer.replaceText(node.value, replacement));
-                    }
-                  }
-                } else {
-                  // String literal replacement
-                  const sourceText = sourceCode.getText(node.value);
-                  const quoteChar =
-                    sourceText[0] === '"'
-                      ? '"'
-                      : sourceText[0] === "'"
-                        ? "'"
-                        : '"';
-                  const replacement = `${quoteChar}${organized}${quoteChar}`;
-
-                  if (node.value.range && Array.isArray(node.value.range)) {
-                    fixes.push(
-                      fixer.replaceTextRange(node.value.range, replacement)
-                    );
-                  } else {
-                    fixes.push(fixer.replaceText(node.value, replacement));
-                  }
-                }
-              }
+              // Add fixes for className attribute
+              fixes = fixes.concat(
+                applyClassNameFixes(
+                  fixer,
+                  node,
+                  organized,
+                  isTemplateLiteral,
+                  useExpressionFormat,
+                  useComments,
+                  utility.name,
+                  cleanClasses,
+                  sourceCode
+                )
+              );
               
               return fixes;
             },

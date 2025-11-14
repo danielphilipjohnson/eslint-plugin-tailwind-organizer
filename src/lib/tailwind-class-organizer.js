@@ -487,12 +487,7 @@ function formatWithComments(classes, utilityName = "cn") {
     return classes;
   }
 
-  // If there's only one group and its classes string is identical to the original input,
-  // and it has a comment, it means the original input was a single class that got grouped.
-  // In this specific case, we should return the classes string directly without wrapping it in cn().
-  if (groups.length === 1 && groups[0].classes === classes && groups[0].comment) {
-    return classes;
-  }
+
 
   // Format as utility function (cn() or clsx()) with comments
   const parts = groups.map((g) => {
@@ -507,99 +502,16 @@ ${parts.join(",\n")}
   )}`;
 }
 
-function hasCnImport(sourceCode) {
-  const text = sourceCode.getText();
-  // Check for various import patterns - be more thorough
-  return (
-    // Named import: import { cn } from "..."
-    /import\s+.*\{[^}]*\bcn\b[^}]*\}.*from/.test(text) ||
-    // Default import: import cn from "..."
-    /import\s+cn\s+from/.test(text) ||
-    // Mixed: import cn, { other } from "..." or import { other, cn } from "..."
-    /import\s+.*\bcn\b.*from/.test(text) ||
-    // Require: const cn = require("...")
-    /require\s*\([^)]*cn/.test(text) ||
-    // Already using cn() in the file (indicates it's available)
-    /className\s*=\s*\{cn\(/.test(text)
-  );
-}
-
-function hasClsxImport(sourceCode) {
-  const text = sourceCode.getText();
-  // Check for clsx import patterns
-  return (
-    // Named import: import { clsx } from "..."
-    /import\s+.*\{[^}]*\bclsx\b[^}]*\}.*from/.test(text) ||
-    // Default import: import clsx from "..."
-    /import\s+clsx\s+from/.test(text) ||
-    // Mixed imports
-    /import\s+.*\bclsx\b.*from/.test(text) ||
-    // Require: const clsx = require("...")
-    /require\s*\([^)]*clsx/.test(text) ||
-    // Already using clsx() in the file
-    /className\s*=\s*\{clsx\(/.test(text)
-  );
-}
-
-// ! cant i just check if there is a function present in the
-function getUtilityFunction(sourceCode, customUtility, customImportPath) {
-  const text = sourceCode.getText();
-  
-  // Check if already imported (prefer cn if both are imported)
-  if (hasCnImport(sourceCode)) {
-    return { name: "cn", imported: true, importPath: null };
-  }
-  if (hasClsxImport(sourceCode)) {
-    return { name: "clsx", imported: true, importPath: null };
-  }
-  
-  // Neither is imported - try to detect which is more likely available
-  // Check if clsx is being used elsewhere in the file (indicates it's available)
-  const hasClsxUsage = /clsx\(/.test(text);
-  const hasCnUsage = /cn\(/.test(text);
-  
-  // If cn is being used but not imported, it's likely available
-  if (hasCnUsage && !hasClsxUsage) {
-    return { name: "cn", imported: false, importPath: null };
-  }
-  
-  // Check for common cn utility file patterns
-  const hasUtilsFile = 
-    text.includes('from "@/lib/utils"') ||
-    text.includes("from '@/lib/utils'") ||
-    text.includes('from "../lib/utils"') ||
-    text.includes("from '../lib/utils'") ||
-    text.includes('from "./lib/utils"') ||
-    text.includes("from './lib/utils'");
-  
-  // If utils file is imported, cn is likely available there
-  if (hasUtilsFile) {
-    return { name: "cn", imported: false, importPath: null };
-  }
-  
-  // Use custom utility if specified in config
-  if (customUtility) {
-    return {
-      name: customUtility,
-      imported: false,
-      importPath: customImportPath || null
-    };
-  }
-  // Default to clsx (standard npm package, required dependency)
-  return { name: "clsx", imported: false, importPath: "clsx" };
-}
-
 // Export functions
-module.exports = {
+const _internals = {
+  matchesPattern,
+};
+
+export {
   organizeClasses,
   generateJSXClassName,
   getOrganizedGroups,
   formatWithComments,
-  hasCnImport,
-  hasClsxImport,
-  getUtilityFunction,
   // Expose helpers for testing and advanced usage
-  _internals: {
-    matchesPattern,
-  },
+  _internals,
 };
