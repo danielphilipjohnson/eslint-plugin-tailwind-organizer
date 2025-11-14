@@ -2,11 +2,13 @@
   "name": "eslint-plugin-tailwind-organizer",
   "version": "0.0.1",
   "description": "ESLint plugin to organize Tailwind CSS class names using custom grouping",
+  "type": "module",
   "main": "src/index.js",
   "exports": {
     ".": "./src/index.js",
     "./processor": "./src/processor.js",
-    "./rules/*": "./src/rules/*.js"
+    "./rules/*": "./src/rules/*.js",
+    "./lib/*": "./src/lib/*.js"
   },
 
   "files": [
@@ -50,7 +52,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "test:eslint": "node tests/rules/organize-classnames.test.js",
+    "test:eslint": "node tests/rules/organize-classnames.test.cjs",
     "test:integration": "node scripts/test-integration.js",
     "lint": "eslint src tests",
     "format": "prettier --write \"**/*.{js,json,md}\"",

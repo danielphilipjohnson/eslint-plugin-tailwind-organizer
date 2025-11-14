@@ -7,8 +7,8 @@ export default defineConfig({
     globals: true,
     environment: "node",
     pool: "threads",
-    include: ["tests/**/*.test.js", "tests/**/*.vitest.js"],
-    exclude: ["tests/rules/**/*.test.js"],
+    include: ["tests/**/*.test.js", "tests/**/*.vitest.js", "tests/rules/organize-classnames-helpers.test.js"],
+
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
